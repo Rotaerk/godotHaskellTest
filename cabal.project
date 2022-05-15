@@ -1,0 +1,3 @@
+packages:
+  sandbox/sandbox.cabal
+  godot-haskell/godot-haskell.cabal

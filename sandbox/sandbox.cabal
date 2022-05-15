@@ -1,0 +1,18 @@
+cabal-version: 3.0
+name: sandbox
+version: 0.1.0.0
+synopsis: A sandbox for tinkering with godot-haskell.
+homepage: http://github.com/rotaerk/godotHaskellTest
+license: BSD-3-Clause
+author: Matthew Stewart
+maintainer: m.scott.stewart@gmail.com
+category: Game
+extra-source-files: CHANGELOG.md
+
+executable sandbox
+  main-is: Main.hs
+  hs-source-dirs: app
+  default-language: Haskell2010
+  build-depends:
+    godot-haskell ^>=3.1.0.0,
+    base ^>=4.14.3.0
