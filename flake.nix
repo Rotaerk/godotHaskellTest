@@ -12,6 +12,21 @@
     hs = pkgs.haskell.packages.ghc922;
 #    hs = pkgs.haskell.packages.ghc902;
 #    hs = pkgs.haskellPackages;
+
+    editgame = pkgs.writeShellScriptBin "editgame" ''
+      readarray -t projects < <(find -name project.godot -type f -print)
+
+      case "''${#projects[@]}" in
+        0) echo "No godot project found!" ;;
+        1) godot -e "''${projects[0]}" & ;;
+        *)
+          select project in "''${projects[@]}"; do
+            godot -e "''${project}" &
+            break
+          done
+        ;;
+      esac
+    '';
   in
   {
     packages.x86_64-linux = { inherit pkgs; };
@@ -22,6 +37,7 @@
         hs.cabal-install
         hs.haskell-language-server
         pkgs.godot
+        editgame
       ];
       extraDependencies = p: {
         libraryHaskellDepends = [ p.shake ];
