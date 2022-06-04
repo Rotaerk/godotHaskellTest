@@ -42,9 +42,10 @@
       GODOTFLAG=
       SCENESUBSTR=""
 
-      while getopts s:e FLAG; do
+      while getopts sn:e FLAG; do
         case $FLAG in
-          s)
+          s) TYPE=scene ;;
+          n)
             TYPE=scene
             SCENESUBSTR="$OPTARG"
           ;;
