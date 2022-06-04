@@ -3,4 +3,3 @@ dist-newstyle/
 logs/
 **/.shake
 *.import
-*.so

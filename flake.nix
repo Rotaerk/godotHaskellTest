@@ -55,11 +55,25 @@
       done
       shift $((OPTIND-1))
 
-      PROJECTDIR="$(dirname $(pickgd $1))"
+      PROJECT="$(pickgd $1)"
+
+      if [ -z "$PROJECT" ]; then
+        exit 1
+      fi
+      
+      PROJECTDIR="$(dirname $PROJECT)"
 
       case $TYPE in
         project) godot $GODOTFLAG --path "$PROJECTDIR" ;;
-        scene) godot $GODOTFLAG --path "$PROJECTDIR" "$(basename $(pickgd -s "$SCENESUBSTR" "$PROJECTDIR"))" ;;
+        scene)
+          SCENEPATH="$(pickgd -s "$SCENESUBSTR" "$PROJECTDIR")"
+
+          if [ -z "$SCENEPATH" ]; then
+            exit 1
+          fi
+
+          godot $GODOTFLAG --path "$PROJECTDIR" "$(basename "$SCENEPATH")"
+        ;;
       esac
     '';
   in
@@ -77,10 +91,6 @@
         pickgd
         gd
       ];
-
-      extraDependencies = p: {
-        libraryHaskellDepends = [ p.shake ];
-      };
     };
   };
 }
