@@ -13,17 +13,14 @@
 #    hs = pkgs.haskell.packages.ghc902;
 #    hs = pkgs.haskellPackages;
 
-    pickgd = pkgs.writeShellScriptBin "pickgd" ''
-      PATTERN=project.godot
-      while getopts s: FLAG; do
-        case $FLAG in
-          s) PATTERN="*$OPTARG*.tscn" ;;
-          \?) >&2 echo "Invalid option: -$OPTARG"; exit 1 ;;
-        esac
-      done
-      shift $((OPTIND-1))
-
-      readarray -t paths < <(find $1 -name $PATTERN -type f -print)
+    # Usage: pick file-pattern [starting-point...]
+    #
+    # Finds all files matching `file-pattern`, starting from each `starting-point`,
+    # or from the current directory if none are provided. If more than one exists,
+    # prompts the user to select one. Prints to stdout the selected one path
+    # that was found or selected.
+    pick = pkgs.writeShellScriptBin "pick" ''
+      readarray -t paths < <(find ''${@:2} -name ''${1:?Missing file-pattern} -type f -print)
 
       case "''${#paths[@]}" in
         0) exit ;;
@@ -37,6 +34,40 @@
       esac
     '';
 
+    # Usage: upfind starting-point [arg...]
+    #
+    # Finds files starting at `starting-point` and moving upwards through
+    # the directory hierarchy until reaching /.  Prints their paths to
+    # stdout in the order they're found.  Any `arg`s provided are passed on
+    # to `find`.
+    upfind = pkgs.writeShellScriptBin "upfind" ''
+      cd ''${1:?Missing starting-point}
+      shift 1
+      while [[ $PWD != / ]]; do
+        find "$PWD"/ -maxdepth 1 "$@"
+        cd ..
+      done
+    '';
+
+    # Usage: gd [-s search-string] [-e] [starting-point...]
+    #
+    # Without any options provided, runs the godot project found by searching within
+    # each `starting-point`, or the current directory if none are provided. If more
+    # than one such project is found, the user is prompted to select one.
+    #
+    # If the `-s` flag is provided, along with a required `search-string`, instead of
+    # running the godot project, runs a scene (.tscn) file within the project. The
+    # `search-string` is expected to be a substring of the desired scene file name,
+    # and is used to filter down the list of scenes. If one scene remains after
+    # filtering, that is what is run.  If more than one remains, the user is prompted
+    # to select one.
+    #
+    # If the `-e` flag is provided, the project or scene is opened for editing instead
+    # of being run.
+    #
+    # Note: Before invoking godot, this searches upwards for the nearest cabal file
+    # and builds it. Assuming the godot project has a symbolic link to the cabal build
+    # output, this ensures that godot has the latest build of the code.
     gd = pkgs.writeShellScriptBin "gd" ''
       TYPE=project
       GODOTFLAG=
@@ -44,8 +75,7 @@
 
       while getopts sn:e FLAG; do
         case $FLAG in
-          s) TYPE=scene ;;
-          n)
+          s)
             TYPE=scene
             SCENESUBSTR="$OPTARG"
           ;;
@@ -55,20 +85,31 @@
       done
       shift $((OPTIND-1))
 
-      PROJECT="$(pickgd $1)"
+      PROJECT="$(pick project.godot $@)"
 
       if [ -z "$PROJECT" ]; then
+        >&2 echo "No godot project found!"
         exit 1
       fi
       
       PROJECTDIR="$(dirname $PROJECT)"
 
+      CABALFILE="$(upfind $PROJECTDIR -name ?*.cabal -type f -print | head -n 1)"
+
+      if [ -z "$CABALFILE" ]; then
+        >&2 echo "No cabal file found!"
+        exit 1
+      fi
+
+      cabal build "$CABALFILE"
+
       case $TYPE in
         project) godot $GODOTFLAG --path "$PROJECTDIR" ;;
         scene)
-          SCENEPATH="$(pickgd -s "$SCENESUBSTR" "$PROJECTDIR")"
+          SCENEPATH="$(pick "*$SCENESUBSTR*.tscn" "$PROJECTDIR")"
 
           if [ -z "$SCENEPATH" ]; then
+            >&2 echo "No godot scene found!"
             exit 1
           fi
 
@@ -88,8 +129,9 @@
         hs.haskell-language-server
         pkgs.godot
 
-        pickgd
+        pick
         gd
+        upfind
       ];
     };
   };
