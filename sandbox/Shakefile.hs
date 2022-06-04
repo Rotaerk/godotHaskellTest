@@ -20,7 +20,7 @@ main = shakeArgs options $ do
 
   "run" ~> do
     need ["build"]
-    cmd "godot" ["--path", godotProjectDirPath]
+    cmd "gd"
 
 options :: ShakeOptions
 options = shakeOptions { shakeFiles = shakeDirPath }
