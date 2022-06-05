@@ -8,7 +8,6 @@ license: BSD-3-Clause
 author: Matthew Stewart
 maintainer: m.scott.stewart@gmail.com
 category: Game
-extra-source-files: CHANGELOG.md
 
 common common
   default-language: GHC2021
