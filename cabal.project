@@ -1,3 +1,4 @@
 packages:
+  dodge/dodge.cabal
   sandbox/sandbox.cabal
   godot-haskell/godot-haskell.cabal

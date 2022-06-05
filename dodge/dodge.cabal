@@ -1,0 +1,39 @@
+cabal-version: 3.0
+
+name: dodge
+version: 0.1.0.0
+synopsis: An implementation of Dodge the Creeps! using godot-haskell.
+homepage: http://github.com/rotaerk/godotHaskellTest
+license: BSD-3-Clause
+author: Matthew Stewart
+maintainer: m.scott.stewart@gmail.com
+category: Game
+
+common common
+  default-language: GHC2021
+  build-depends:
+    godot-haskell ^>=3.4.4.0,
+    base ^>=4.16.1.0
+
+library
+  import: common
+  ghc-options:
+    -Wall -O2
+    -fwarn-unused-do-bind
+    -fwarn-incomplete-uni-patterns
+    -fwarn-incomplete-record-updates
+  hs-source-dirs: src
+  exposed-modules: Lib
+  other-modules:
+  default-extensions:
+  build-depends:
+    linear,
+    text
+
+foreign-library dodge
+  import: common
+  type: native-shared
+  hs-source-dirs: ffi/flib
+  c-sources: ffi/cbits/flib.c
+  other-modules: FLib
+  build-depends: dodge
