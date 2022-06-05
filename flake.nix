@@ -104,7 +104,7 @@
       cabal build "$CABALFILE"
 
       case $TYPE in
-        project) godot $GODOTFLAG --path "$PROJECTDIR" ;;
+        project) godot $GODOTFLAG --path "$PROJECTDIR" & ;;
         scene)
           SCENEPATH="$(pick "*$SCENESUBSTR*.tscn" "$PROJECTDIR")"
 
@@ -113,7 +113,7 @@
             exit 1
           fi
 
-          godot $GODOTFLAG --path "$PROJECTDIR" "$(basename "$SCENEPATH")"
+          godot $GODOTFLAG --path "$PROJECTDIR" "$(basename "$SCENEPATH")" &
         ;;
       esac
     '';
